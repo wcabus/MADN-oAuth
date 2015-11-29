@@ -1,4 +1,5 @@
 ﻿using System.Web.Http;
+using FluentValidation.WebApi;
 
 namespace Timesheet.Api
 {
@@ -7,6 +8,8 @@ namespace Timesheet.Api
         protected void Application_Start()
         {
             GlobalConfiguration.Configure(WebApiConfig.Register);
+
+            FluentValidationModelValidatorProvider.Configure(GlobalConfiguration.Configuration);
         }
     }
 }

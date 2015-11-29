@@ -9,6 +9,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "API", "API", "{560208A4-C34
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Timesheet.Domain", "Timesheet.Domain\Timesheet.Domain.csproj", "{70525011-F151-47AF-A389-655893BA6F11}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Timesheet.Storage", "Timesheet.Storage\Timesheet.Storage.csproj", "{C217B339-28D3-4C23-9227-D2B28F0338E8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,6 +25,10 @@ Global
 		{70525011-F151-47AF-A389-655893BA6F11}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70525011-F151-47AF-A389-655893BA6F11}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70525011-F151-47AF-A389-655893BA6F11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C217B339-28D3-4C23-9227-D2B28F0338E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C217B339-28D3-4C23-9227-D2B28F0338E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C217B339-28D3-4C23-9227-D2B28F0338E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C217B339-28D3-4C23-9227-D2B28F0338E8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -30,5 +36,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{EE029D3A-E269-428C-994D-D065F0C73767} = {560208A4-C347-45D3-9573-951A5D99F939}
 		{70525011-F151-47AF-A389-655893BA6F11} = {560208A4-C347-45D3-9573-951A5D99F939}
+		{C217B339-28D3-4C23-9227-D2B28F0338E8} = {560208A4-C347-45D3-9573-951A5D99F939}
 	EndGlobalSection
 EndGlobal
