@@ -8,12 +8,7 @@ namespace Timesheet.Api.Controllers
     [RoutePrefix("api/projects")]
     public class ProjectsController : ApiController
     {
-        private readonly ProjectRepository _repository;
-
-        public ProjectsController()
-        {
-            _repository = new ProjectRepository();
-        }
+        private readonly ProjectRepository _repository = new ProjectRepository();
 
         public IHttpActionResult GetProjects()
         {
