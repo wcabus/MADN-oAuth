@@ -11,6 +11,7 @@ namespace Timesheet.Repositories
         protected const string TasksTable = "Tasks";
         protected const string EmployeesTable = "Employees";
         protected const string RegistrationsTable = "Registrations";
+        protected const string RegistrationsEmployeeTable = "RegistrationsPerEmployee";
 
         protected CloudTable GetTable(string tableName)
         {
