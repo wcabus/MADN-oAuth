@@ -9,6 +9,7 @@ namespace Timesheet.Repositories
     {
         protected const string ProjectsTable = "Projects";
         protected const string TasksTable = "Tasks";
+        protected const string EmployeesTable = "Employees";
         protected const string RegistrationsTable = "Registrations";
 
         protected CloudTable GetTable(string tableName)
