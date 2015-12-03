@@ -13,7 +13,8 @@ namespace Timesheet.Repositories
         {
             var table = GetTable(ProjectsTable);
             return table.CreateQuery<ProjectEntity>()
-                        .Select(x => x.ToDomain());
+                    .ToList()
+                    .Select(x => x.ToDomain());
         }
 
         public Project GetProjectById(Guid id)
@@ -21,10 +22,11 @@ namespace Timesheet.Repositories
             var entity = new ProjectEntity { Id = id };
             var table = GetTable(ProjectsTable);
 
-            return table.CreateQuery<ProjectEntity>()
+            var result = table.CreateQuery<ProjectEntity>()
                         .Where(x=> x.PartitionKey == "" && x.RowKey == entity.RowKey)
-                        .Select(x => x.ToDomain())
                         .SingleOrDefault();
+
+            return result?.ToDomain();
         }
 
         public Project CreateProject(string name, string description)

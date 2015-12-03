@@ -10,6 +10,7 @@ namespace Timesheet.Api.Controllers
     {
         private readonly TaskRepository _repository = new TaskRepository();
 
+        [Route]
         public IHttpActionResult GetTasks(Guid projectId)
         {
             return Ok(_repository.GetTasksByProjectId(projectId));
@@ -23,6 +24,7 @@ namespace Timesheet.Api.Controllers
             return Ok(task);
         }
 
+        [Route]
         public IHttpActionResult CreateTask(Guid projectId, CreateTaskModel model)
         {
             if (!ModelState.IsValid)

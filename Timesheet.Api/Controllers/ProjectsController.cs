@@ -10,6 +10,7 @@ namespace Timesheet.Api.Controllers
     {
         private readonly ProjectRepository _repository = new ProjectRepository();
 
+        [Route]
         public IHttpActionResult GetProjects()
         {
             return Ok(_repository.GetProjects());
@@ -25,6 +26,7 @@ namespace Timesheet.Api.Controllers
         }
 
         [HttpPost]
+        [Route]
         public IHttpActionResult CreateProject(CreateProjectModel model)
         {
             if (!ModelState.IsValid)

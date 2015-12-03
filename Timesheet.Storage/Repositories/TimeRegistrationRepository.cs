@@ -15,6 +15,7 @@ namespace Timesheet.Repositories
             var table = GetTable(RegistrationsTable);
             return table.CreateQuery<TimeRegistrationEntity>()
                 .Where(x => x.PartitionKey == task.PartitionKey)
+                .ToList()
                 .Select(x => x.ToDomain());
         }
 
@@ -28,16 +29,15 @@ namespace Timesheet.Repositories
 
             var tasks = query.OrderBy(x => x.TaskId).Select(x => x.TaskId).Distinct();
 
-            var results = new List<TimeRegistration>();
+            var results = new List<TimeRegistrationEntity>();
             var tableResults = GetTable(RegistrationsTable);
             foreach (var task in tasks)
             {
                 results.AddRange(tableResults.CreateQuery<TimeRegistrationEntity>()
-                    .Where(x => x.PartitionKey == task.ToString("D"))
-                    .Select(x => x.ToDomain()));
+                    .Where(x => x.PartitionKey == task.ToString("D")));
             }
 
-            return results;
+            return results.Select(x => x.ToDomain());
         }
         
         public TimeRegistration GetTimeRegistrationByIdForEmployee(Guid employeeId, Guid registrationId)
@@ -57,8 +57,8 @@ namespace Timesheet.Repositories
             var regTable = GetTable(RegistrationsTable);
             return regTable.CreateQuery<TimeRegistrationEntity>()
                     .Where(x => x.PartitionKey == regKey.PartitionKey && x.RowKey == regKey.RowKey)
-                    .Select(x => x.ToDomain())
-                    .Single();
+                    .Single()
+                    .ToDomain();
         }
 
         public TimeRegistration CreateTimeRegistration(Guid taskId, Guid employeeId, DateTimeOffset start, DateTimeOffset end, string remarks)

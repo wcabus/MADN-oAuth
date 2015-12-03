@@ -9,6 +9,7 @@ namespace Timesheet.Api.Controllers
     {
         private readonly EmployeeRepository _repository = new EmployeeRepository();
 
+        [Route]
         public IHttpActionResult GetEmployees()
         {
             return Ok(_repository.GetEmployees());

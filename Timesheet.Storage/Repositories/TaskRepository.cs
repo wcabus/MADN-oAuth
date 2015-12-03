@@ -16,6 +16,7 @@ namespace Timesheet.Repositories
 
             return table.CreateQuery<TaskEntity>()
                         .Where(x => x.PartitionKey == entity.PartitionKey)
+                        .ToList()
                         .Select(x => x.ToDomain());
         }
 
@@ -24,10 +25,11 @@ namespace Timesheet.Repositories
             var entity = new TaskEntity { ProjectId = projectId, Id = id };
             var table = GetTable(TasksTable);
 
-            return table.CreateQuery<TaskEntity>()
+            var result = table.CreateQuery<TaskEntity>()
                         .Where(x => x.PartitionKey == entity.PartitionKey && x.RowKey == entity.RowKey)
-                        .Select(x => x.ToDomain())
                         .SingleOrDefault();
+
+            return result?.ToDomain();
         }
 
         public Task CreateTask(Guid projectId, string name, string description, TimeSpan? availableTime)

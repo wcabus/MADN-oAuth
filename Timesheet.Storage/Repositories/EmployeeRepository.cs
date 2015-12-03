@@ -12,6 +12,7 @@ namespace Timesheet.Repositories
         {
             var table = GetTable(EmployeesTable);
             return table.CreateQuery<EmployeeEntity>()
+                        .ToList()
                         .Select(x => x.ToDomain());
         }
 
@@ -20,10 +21,11 @@ namespace Timesheet.Repositories
             var entity = new EmployeeEntity { Id = id };
             var table = GetTable(EmployeesTable);
 
-            return table.CreateQuery<EmployeeEntity>()
+            var result = table.CreateQuery<EmployeeEntity>()
                         .Where(x => x.PartitionKey == "" && x.RowKey == entity.RowKey)
-                        .Select(x => x.ToDomain())
                         .SingleOrDefault();
+
+            return result?.ToDomain();
         }
     }
 }
