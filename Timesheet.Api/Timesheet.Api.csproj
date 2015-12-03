@@ -98,11 +98,13 @@
     <Compile Include="Controllers\EmployeesController.cs" />
     <Compile Include="Controllers\ProjectsController.cs" />
     <Compile Include="Controllers\TasksController.cs" />
+    <Compile Include="Controllers\TimeRegistrationsController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\Projects\CreateProjectModel.cs" />
     <Compile Include="Models\Tasks\CreateTaskModel.cs" />
+    <Compile Include="Models\TimeRegistrations\CreateTimeRegistrationModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

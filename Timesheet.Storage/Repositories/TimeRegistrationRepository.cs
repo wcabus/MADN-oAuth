@@ -9,6 +9,15 @@ namespace Timesheet.Repositories
 {
     public class TimeRegistrationRepository : BaseRepository
     {
+        public IEnumerable<TimeRegistration> GetTimeRegistrationsForTask(Guid taskId)
+        {
+            var task = new TimeRegistrationEntity { TaskId = taskId };
+            var table = GetTable(RegistrationsTable);
+            return table.CreateQuery<TimeRegistrationEntity>()
+                .Where(x => x.PartitionKey == task.PartitionKey)
+                .Select(x => x.ToDomain());
+        }
+
         public IEnumerable<TimeRegistration> GetTimeRegistrationsForEmployee(Guid employeeId)
         {
             var search = new TimeRegistrationByEmployeeEntity { EmployeeId = employeeId };
@@ -30,14 +39,26 @@ namespace Timesheet.Repositories
 
             return results;
         }
-
-        public IEnumerable<TimeRegistration> GetTimeRegistrationsForTask(Guid taskId)
+        
+        public TimeRegistration GetTimeRegistrationByIdForEmployee(Guid employeeId, Guid registrationId)
         {
-            var task = new TimeRegistrationEntity {TaskId = taskId};
-            var table = GetTable(RegistrationsTable);
-            return table.CreateQuery<TimeRegistrationEntity>()
-                .Where(x => x.PartitionKey == task.PartitionKey)
-                .Select(x => x.ToDomain());
+            var search = new TimeRegistrationByEmployeeEntity { EmployeeId = employeeId, Id = registrationId };
+            var table = GetTable(RegistrationsEmployeeTable);
+            var key = table.CreateQuery<TimeRegistrationByEmployeeEntity>()
+                .Where(x => x.PartitionKey == search.PartitionKey && x.RowKey == search.RowKey)
+                .SingleOrDefault();
+
+            if (key == null)
+            {
+                return null;
+            }
+
+            var regKey = new TimeRegistrationEntity { TaskId = key.TaskId, Id = registrationId };
+            var regTable = GetTable(RegistrationsTable);
+            return regTable.CreateQuery<TimeRegistrationEntity>()
+                    .Where(x => x.PartitionKey == regKey.PartitionKey && x.RowKey == regKey.RowKey)
+                    .Select(x => x.ToDomain())
+                    .Single();
         }
 
         public TimeRegistration CreateTimeRegistration(Guid taskId, Guid employeeId, DateTimeOffset start, DateTimeOffset end, string remarks)
