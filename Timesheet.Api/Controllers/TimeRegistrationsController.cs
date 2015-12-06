@@ -25,7 +25,7 @@ namespace Timesheet.Api.Controllers
             return Ok(_repository.GetTimeRegistrationsForEmployee(employeeId));
         }
 
-        [Route("~/api/employees/{employeeId:guid}/registrations/{id:guid}")]
+        [Route("~/api/employees/{employeeId:guid}/registrations/{id:guid}", Name = "GetRegistrationRoute")]
         public IHttpActionResult GetRegistrationForEmployee(Guid employeeId, Guid id)
         {
             var registration = _repository.GetTimeRegistrationByIdForEmployee(employeeId, id);
@@ -41,9 +41,19 @@ namespace Timesheet.Api.Controllers
         [Route("~/api/employees/{employeeId:guid}/registrations")]
         public IHttpActionResult CreateTimeRegistration(Guid employeeId, CreateTimeRegistrationModel model)
         {
+            if (employeeId == Guid.Empty)
+            {
+                ModelState.AddModelError("", "Invalid employee ID.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var registration = _repository.CreateTimeRegistration(model.TaskId, employeeId, model.Start, model.End, model.Remarks);
 
-            return CreatedAtRoute("", new { employeeId, registration.Id }, registration);
+            return CreatedAtRoute("GetRegistrationRoute", new { employeeId, registration.Id }, registration);
         }
     }
 }
