@@ -25,9 +25,9 @@ namespace Timesheet.Repositories
             var entity = new TaskEntity { ProjectId = projectId, Id = id };
             var table = GetTable(TasksTable);
 
-            var result = table.CreateQuery<TaskEntity>()
-                        .Where(x => x.PartitionKey == entity.PartitionKey && x.RowKey == entity.RowKey)
-                        .SingleOrDefault();
+            var result = table
+                        .CreateQuery<TaskEntity>()
+                        .SingleOrDefault(x => x.PartitionKey == entity.PartitionKey && x.RowKey == entity.RowKey);
 
             return result?.ToDomain();
         }

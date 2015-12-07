@@ -44,9 +44,9 @@ namespace Timesheet.Repositories
         {
             var search = new TimeRegistrationByEmployeeEntity { EmployeeId = employeeId, Id = registrationId };
             var table = GetTable(RegistrationsEmployeeTable);
-            var key = table.CreateQuery<TimeRegistrationByEmployeeEntity>()
-                .Where(x => x.PartitionKey == search.PartitionKey && x.RowKey == search.RowKey)
-                .SingleOrDefault();
+            var key = table
+                .CreateQuery<TimeRegistrationByEmployeeEntity>()
+                .SingleOrDefault(x => x.PartitionKey == search.PartitionKey && x.RowKey == search.RowKey);
 
             if (key == null)
             {
@@ -55,9 +55,9 @@ namespace Timesheet.Repositories
 
             var regKey = new TimeRegistrationEntity { TaskId = key.TaskId, Id = registrationId };
             var regTable = GetTable(RegistrationsTable);
-            return regTable.CreateQuery<TimeRegistrationEntity>()
-                    .Where(x => x.PartitionKey == regKey.PartitionKey && x.RowKey == regKey.RowKey)
-                    .Single()
+            return regTable
+                    .CreateQuery<TimeRegistrationEntity>()
+                    .Single(x => x.PartitionKey == regKey.PartitionKey && x.RowKey == regKey.RowKey)
                     .ToDomain();
         }
 
@@ -87,10 +87,10 @@ namespace Timesheet.Repositories
             var tableOp = TableOperation.Insert(task);
             var tableOp2 = TableOperation.Insert(taskPerEmployee);
 
-            // TODO Move in transaction somehow
             table.Execute(tableOp);
             table2.Execute(tableOp2);
-            // End transaction 
+
+            // Note: a transaction is only possible when the two operations share the same partition key
 
             return task.ToDomain();
         }
