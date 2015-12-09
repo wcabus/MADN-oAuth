@@ -22,9 +22,9 @@ namespace Timesheet.Repositories
             var entity = new ProjectEntity { Id = id };
             var table = GetTable(ProjectsTable);
 
-            var result = table.CreateQuery<ProjectEntity>()
-                        .Where(x=> x.PartitionKey == "" && x.RowKey == entity.RowKey)
-                        .SingleOrDefault();
+            var result = table
+                        .CreateQuery<ProjectEntity>()
+                        .SingleOrDefault(x => x.PartitionKey == "" && x.RowKey == entity.RowKey);
 
             return result?.ToDomain();
         }
