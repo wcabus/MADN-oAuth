@@ -19,8 +19,8 @@ namespace Timesheet.App.ViewModels
         private ICommand _saveCommand;
         private ICommand _deleteCommand;
 
-        private Project _selectedProject = null;
-        private Task _selectedTask = null;
+        private Project _selectedProject;
+        private Task _selectedTask;
         private DateTimeOffset _date = DateTimeOffset.Now;
         private TimeSpan _start;
         private TimeSpan _end;
@@ -168,7 +168,7 @@ namespace Timesheet.App.ViewModels
         private void CreateCommands()
         {
             _saveCommand = new RelayCommand(async() => await SaveAsync());
-            _deleteCommand = new RelayCommand(() => Reset());
+            _deleteCommand = new RelayCommand(Reset);
         }
 
         private async TTask LoadTasksAsync(Project project)
@@ -194,7 +194,7 @@ namespace Timesheet.App.ViewModels
             
             try
             {
-                await _apiService.CreateRegistrationAsync(Guid.Empty /* employeeId */, registration);
+                await _apiService.CreateRegistrationAsync(App.EmployeeId, registration);
                 Reset();
 
                 var dlg = new MessageDialog("Saved!", "Create Registration");

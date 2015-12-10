@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using IdentityServer3.Core;
 using IdentityServer3.Core.Models;
+using Timesheet.Domain;
 
 namespace Timesheet.STS.Configuration
 {
@@ -7,13 +9,25 @@ namespace Timesheet.STS.Configuration
     {
         public static List<Scope> Get()
         {
-            return new List<Scope>
+            var scopes = new List<Scope>
             {
+                StandardScopes.OpenId,
+                StandardScopes.Profile,
+                StandardScopes.Email,
+                
                 new Scope
                 {
-                    Name = "timesheet-api"
+                    Name = TimesheetConstants.ApiScope,
+                    DisplayName = "Timesheet API",
+                    Type = ScopeType.Resource,
+                    Claims = new List<ScopeClaim>
+                    {
+                        new ScopeClaim(Constants.ClaimTypes.Name, true)
+                    }
                 }
             };
+
+            return scopes;
         }
     }
 }

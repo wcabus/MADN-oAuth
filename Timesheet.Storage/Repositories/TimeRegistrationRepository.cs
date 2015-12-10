@@ -19,7 +19,7 @@ namespace Timesheet.Repositories
                 .Select(x => x.ToDomain());
         }
 
-        public IEnumerable<TimeRegistration> GetTimeRegistrationsForEmployee(Guid employeeId)
+        public IEnumerable<TimeRegistration> GetTimeRegistrationsForEmployee(string employeeId)
         {
             var search = new TimeRegistrationByEmployeeEntity { EmployeeId = employeeId };
             var table = GetTable(RegistrationsEmployeeTable);
@@ -40,13 +40,14 @@ namespace Timesheet.Repositories
             return results.Select(x => x.ToDomain());
         }
         
-        public TimeRegistration GetTimeRegistrationByIdForEmployee(Guid employeeId, Guid registrationId)
+        public TimeRegistration GetTimeRegistrationByIdForEmployee(string employeeId, Guid registrationId)
         {
             var search = new TimeRegistrationByEmployeeEntity { EmployeeId = employeeId, Id = registrationId };
             var table = GetTable(RegistrationsEmployeeTable);
             var key = table
                 .CreateQuery<TimeRegistrationByEmployeeEntity>()
-                .SingleOrDefault(x => x.PartitionKey == search.PartitionKey && x.RowKey == search.RowKey);
+                .Where(x => x.PartitionKey == search.PartitionKey && x.RowKey == search.RowKey)
+                .SingleOrDefault();
 
             if (key == null)
             {
@@ -57,11 +58,12 @@ namespace Timesheet.Repositories
             var regTable = GetTable(RegistrationsTable);
             return regTable
                     .CreateQuery<TimeRegistrationEntity>()
-                    .Single(x => x.PartitionKey == regKey.PartitionKey && x.RowKey == regKey.RowKey)
+                    .Where(x => x.PartitionKey == regKey.PartitionKey && x.RowKey == regKey.RowKey)
+                    .Single()
                     .ToDomain();
         }
 
-        public TimeRegistration CreateTimeRegistration(Guid taskId, Guid employeeId, DateTimeOffset start, DateTimeOffset end, string remarks)
+        public TimeRegistration CreateTimeRegistration(Guid taskId, string employeeId, DateTimeOffset start, DateTimeOffset end, string remarks)
         {
             var task = new TimeRegistrationEntity
             {

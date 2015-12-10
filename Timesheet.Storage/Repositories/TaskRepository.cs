@@ -27,7 +27,8 @@ namespace Timesheet.Repositories
 
             var result = table
                         .CreateQuery<TaskEntity>()
-                        .SingleOrDefault(x => x.PartitionKey == entity.PartitionKey && x.RowKey == entity.RowKey);
+                        .Where(x => x.PartitionKey == entity.PartitionKey && x.RowKey == entity.RowKey)
+                        .SingleOrDefault();
 
             return result?.ToDomain();
         }

@@ -12,11 +12,19 @@ namespace Timesheet.App.Services
     {
         private readonly HttpClient _httpClient = new HttpClient();
 
-        const string BaseUri = "http://localhost:2658/api/";
+        const string BaseUri = "http://169.254.80.80/Timesheet.Api/api/";
 
         public ApiService()
         {
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        }
+
+        public string Token
+        {
+            set
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", value);
+            }
         }
 
         public async Task<IEnumerable<T>> GetListAsync<T>(string path)
@@ -36,7 +44,7 @@ namespace Timesheet.App.Services
             return ParseJson<T>(await response.Content.ReadAsStringAsync());
         }
 
-        public async Task CreateRegistrationAsync<T>(Guid employeeId, T registration)
+        public async Task CreateRegistrationAsync<T>(string employeeId, T registration)
         {
             var content = new StringContent(JsonConvert.SerializeObject(registration), Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync(BuildUri($"employees/{employeeId}/registrations"), content);

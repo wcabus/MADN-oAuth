@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Web.Http;
 using Timesheet.Api.Models.TimeRegistrations;
 using Timesheet.Repositories;
@@ -19,16 +15,16 @@ namespace Timesheet.Api.Controllers
             return Ok(_repository.GetTimeRegistrationsForTask(taskId));
         }
 
-        [Route("~/api/employees/{employeeId:guid}/registrations")]
-        public IHttpActionResult GetRegistrationsForEmployee(Guid employeeId)
+        [Route("~/api/employees/{employeeId}/registrations")]
+        public IHttpActionResult GetRegistrationsForEmployee(string employeeId)
         {
-            return Ok(_repository.GetTimeRegistrationsForEmployee(employeeId));
+            return Ok(_repository.GetTimeRegistrationsForEmployee(employeeId.ToUpperInvariant()));
         }
 
-        [Route("~/api/employees/{employeeId:guid}/registrations/{id:guid}", Name = "GetRegistrationRoute")]
-        public IHttpActionResult GetRegistrationForEmployee(Guid employeeId, Guid id)
+        [Route("~/api/employees/{employeeId}/registrations/{id:guid}", Name = "GetRegistrationRoute")]
+        public IHttpActionResult GetRegistrationForEmployee(string employeeId, Guid id)
         {
-            var registration = _repository.GetTimeRegistrationByIdForEmployee(employeeId, id);
+            var registration = _repository.GetTimeRegistrationByIdForEmployee(employeeId.ToUpperInvariant(), id);
             if (registration == null)
             {
                 return NotFound();
@@ -38,10 +34,10 @@ namespace Timesheet.Api.Controllers
         }
 
         [HttpPost]
-        [Route("~/api/employees/{employeeId:guid}/registrations")]
-        public IHttpActionResult CreateTimeRegistration(Guid employeeId, CreateTimeRegistrationModel model)
+        [Route("~/api/employees/{employeeId}/registrations")]
+        public IHttpActionResult CreateTimeRegistration(string employeeId, CreateTimeRegistrationModel model)
         {
-            if (employeeId == Guid.Empty)
+            if (string.IsNullOrEmpty(employeeId))
             {
                 ModelState.AddModelError("", "Invalid employee ID.");
             }
@@ -51,6 +47,7 @@ namespace Timesheet.Api.Controllers
                 return BadRequest(ModelState);
             }
 
+            employeeId= employeeId.ToUpperInvariant();
             var registration = _repository.CreateTimeRegistration(model.TaskId, employeeId, model.Start, model.End, model.Remarks);
 
             return CreatedAtRoute("GetRegistrationRoute", new { employeeId, registration.Id }, registration);

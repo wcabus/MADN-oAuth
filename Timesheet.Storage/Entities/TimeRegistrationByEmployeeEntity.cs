@@ -5,10 +5,10 @@ namespace Timesheet.Entities
 {
     public class TimeRegistrationByEmployeeEntity : TableEntity
     {
-        public Guid EmployeeId
+        public string EmployeeId
         {
-            get { return Guid.ParseExact(PartitionKey, "D"); }
-            set { PartitionKey = value.ToString("D"); }
+            get { return PartitionKey; }
+            set { PartitionKey = value; }
         }
 
         public Guid Id

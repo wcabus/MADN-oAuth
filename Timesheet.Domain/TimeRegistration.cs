@@ -6,7 +6,7 @@ namespace Timesheet.Domain
     {
         public Guid Id { get; set; }
         public Guid TaskId { get; set; }
-        public Guid EmployeeId { get; set; }
+        public string EmployeeId { get; set; }
         
         public DateTimeOffset TimeStart { get; set; }
         public DateTimeOffset TimeEnd { get; set; }

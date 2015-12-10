@@ -1,5 +1,4 @@
-﻿using System;
-using System.Web.Http;
+﻿using System.Web.Http;
 using Timesheet.Api.Models.Employees;
 using Timesheet.Repositories;
 
@@ -16,10 +15,10 @@ namespace Timesheet.Api.Controllers
             return Ok(_repository.GetEmployees());
         }
 
-        [Route("{id:guid}", Name = "GetEmployeeRoute")]
-        public IHttpActionResult GetEmployee(Guid id)
+        [Route("{atomiumAccount}", Name = "GetEmployeeRoute")]
+        public IHttpActionResult GetEmployeeByAtomiumAccount(string atomiumAccount)
         {
-            var employee = _repository.GetEmployeeById(id);
+            var employee = _repository.GetEmployeeByAtomiumAccount(atomiumAccount.ToUpperInvariant());
             if (employee == null)
             {
                 return NotFound();
@@ -36,8 +35,8 @@ namespace Timesheet.Api.Controllers
                 return BadRequest(ModelState);
             }
 
-            var employee = _repository.CreateEmployee(model.Name, model.FirstName, model.Email);
-            return CreatedAtRoute("GetEmployeeRoute", new { employee.Id }, employee);
+            var employee = _repository.CreateEmployee(model.AtomiumAccount.ToUpperInvariant(), model.Name, model.FirstName, model.Email);
+            return CreatedAtRoute("GetEmployeeRoute", new { employee.AtomiumAccount }, employee);
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Microsoft.WindowsAzure.Storage.Table;
 using Timesheet.Domain;
@@ -17,22 +16,30 @@ namespace Timesheet.Repositories
                         .Select(x => x.ToDomain());
         }
 
-        public Employee GetEmployeeById(Guid id)
+        public Employee GetEmployeeByAtomiumAccount(string atomiumAccount)
         {
-            var entity = new EmployeeEntity { Id = id };
+            var entity = new EmployeeEntity { AtomiumAccount = atomiumAccount };
             var table = GetTable(EmployeesTable);
 
             var result = table
                         .CreateQuery<EmployeeEntity>()
-                        .SingleOrDefault(x => x.PartitionKey == "" && x.RowKey == entity.RowKey);
+                        .Where(x => x.PartitionKey == "" && x.RowKey == entity.RowKey)
+                        .SingleOrDefault();
 
             return result?.ToDomain();
         }
 
-        public Employee CreateEmployee(string name, string firstName, string email)
+        public Employee CreateEmployee(string atomiumAccount, string name, string firstName, string email)
         {
             var table = GetTable(EmployeesTable);
-            var entity = new EmployeeEntity { Id = Guid.NewGuid(), Name = name, FirstName = firstName, Email = email };
+            var entity = new EmployeeEntity
+            {
+                AtomiumAccount = atomiumAccount,
+                Name = name,
+                FirstName = firstName,
+                Email = email
+            };
+
             var operation = TableOperation.Insert(entity);
             table.Execute(operation);
 
