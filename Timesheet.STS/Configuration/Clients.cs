@@ -15,14 +15,23 @@ namespace Timesheet.STS.Configuration
                     ClientName = "Timesheet Mobile App",
                     ClientId = TimesheetConstants.ClientId,
                     Enabled = true,
-                    Flow = Flows.Implicit,
+
+                    Flow = Flows.Hybrid,
+
                     AllowedScopes = new List<string>
                     {
-                        "openid",
-                        "profile",
-                        "email",
+                        StandardScopes.OpenId.Name,
+                        StandardScopes.Profile.Name,
+                        StandardScopes.Email.Name,
+                        StandardScopes.OfflineAccess.Name,
                         TimesheetConstants.ApiScope
                     },
+
+                    ClientSecrets = new List<Secret>
+                    {
+                        new Secret("mysupersecretkey".Sha256())
+                    },
+
                     RedirectUris = new List<string>
                     {
                         "ms-app://s-1-15-2-2229323805-4229103899-2707766196-3752596484-745237967-1254760863-2047913441/"

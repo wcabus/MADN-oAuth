@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using IdentityServer3.Core.Configuration;
-using IdentityServer3.Core.Services.InMemory;
 using Microsoft.Owin;
 using Owin;
 using Serilog;

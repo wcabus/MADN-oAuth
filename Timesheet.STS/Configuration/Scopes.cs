@@ -14,6 +14,7 @@ namespace Timesheet.STS.Configuration
                 StandardScopes.OpenId,
                 StandardScopes.Profile,
                 StandardScopes.Email,
+                StandardScopes.OfflineAccess,
                 
                 new Scope
                 {

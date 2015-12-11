@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Windows.Input;
 using Windows.Security.Authentication.Web;
+using Windows.Security.Credentials;
 using Windows.UI.Popups;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
@@ -45,9 +46,9 @@ namespace Timesheet.App.ViewModels
 
         private async Task LoginAsync()
         {
-            const string responseType = "id_token token";
+            const string responseType = "code id_token";
 
-            var scopes = $"openid email profile {TimesheetConstants.ApiScope}";
+            var scopes = $"openid email profile offline_access {TimesheetConstants.ApiScope}";
             var nonce = GenerateNonce();
 
             try
@@ -63,14 +64,28 @@ namespace Timesheet.App.ViewModels
 
                 if (result.ResponseStatus == WebAuthenticationStatus.Success)
                 {
-                    // Successful authentication. 
+                    // Successful authentication, but we only have the ID token and a (long lived) refresh token. 
                     var response = new AuthorizeResponse(result.ResponseData);
-                    var userInfoRequest = new UserInfoClient(new Uri(TimesheetConstants.UserInfoEndpoint), response.AccessToken);
+
+                    StoreCredentials(response);
+
+                    // Let's get the actual (short lived) access token 
+                    var tokenClient = new TokenClient(
+                                    TimesheetConstants.TokenEndpoint,
+                                    TimesheetConstants.ClientId,
+                                    "mysupersecretkey");
+
+                    var tokenResponse = await tokenClient.RequestAuthorizationCodeAsync(response.Code, redirectUri.ToString());
+
+                    // Great! Now, let's retrieve the claims using that access token to fetch the user name we need.
+                    var userInfoRequest = new UserInfoClient(new Uri(TimesheetConstants.UserInfoEndpoint), tokenResponse.AccessToken);
                     var userInfo = await userInfoRequest.GetAsync();
 
                     App.EmployeeId = userInfo.Claims.FirstOrDefault(x => x.Item1 == "name")?.Item2 ?? "";
 
-                    _apiService.Token = response.AccessToken;
+                    // And remember the access token when calling the API
+                    _apiService.Token = tokenResponse.AccessToken;
+
                     NavigateToDetailPage();
                 }
             }
@@ -79,6 +94,14 @@ namespace Timesheet.App.ViewModels
                 var dlg = new MessageDialog(ex.Message, "Error");
                 await dlg.ShowAsync();
             }
+        }
+
+        private void StoreCredentials(AuthorizeResponse response)
+        {
+            var vault = new PasswordVault();
+            var pwdc = new PasswordCredential(TimesheetConstants.ClientId, response.IdentityToken, response.Raw);
+
+            vault.Add(pwdc);
         }
 
         private void NavigateToDetailPage()
