@@ -9,5 +9,7 @@
         public const string ClientId = "timesheet-mobile-app";
 
         public const string ApiScope = "timesheet-api";
+
+        public const string VaultUserName = "token";
     }
 }

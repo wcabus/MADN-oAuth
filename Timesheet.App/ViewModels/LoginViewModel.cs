@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Windows.Input;
 using Windows.Security.Authentication.Web;
-using Windows.Security.Credentials;
 using Windows.UI.Popups;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
@@ -12,7 +10,6 @@ using GalaSoft.MvvmLight.Views;
 using Timesheet.App.Services;
 using Timesheet.Domain;
 using Task = System.Threading.Tasks.Task;
-using IdentityModel;
 using IdentityModel.Client;
 using Timesheet.App.Messages;
 
@@ -75,7 +72,7 @@ namespace Timesheet.App.ViewModels
                     var response = new AuthorizeResponse(result.ResponseData);
                     var tokenResponse = await GetAuthTokenAsync(response);
 
-                    StoreCredentials(tokenResponse);
+                    ApiService.StoreTokenInVault(tokenResponse);
                     
                     await FinishLoginAsync(tokenResponse);
                 }
@@ -87,46 +84,21 @@ namespace Timesheet.App.ViewModels
             }
         }
 
-        private void StoreCredentials(TokenResponse response)
-        {
-            var vault = new PasswordVault();
-            var pwdc = new PasswordCredential(TimesheetConstants.ClientId, response.IdentityToken, response.Raw);
-
-            vault.Add(pwdc);
-        }
-
         private async System.Threading.Tasks.Task<bool> TryLoginUsingVaultAsync()
         {
-            var vault = new PasswordVault();
-            PasswordCredential pwdc = null;
-
-            try {
-                pwdc = vault.FindAllByResource(TimesheetConstants.ClientId).FirstOrDefault();
-            }
-            catch {
-                // Couldn't find a credential for our application
-            }
-
-            if (pwdc == null)
+            var raw = ApiService.GetTokenFromVault();
+            if (string.IsNullOrEmpty(raw))
             {
                 return false;
             }
 
-            pwdc.RetrievePassword();
-            var raw = pwdc.Password;
-
-            try
+            var tokenResponse = new TokenResponse(raw);
+            if (await FinishLoginAsync(tokenResponse))
             {
-                var tokenResponse = new TokenResponse(raw);
-                await FinishLoginAsync(tokenResponse);
                 return true;
             }
-            catch
-            {
-                // Something went wrong when parsing the original token.
-                vault.Remove(pwdc);
-            }
 
+            ApiService.RemoveTokenFromVault();
             return false;
         }
 
@@ -143,11 +115,16 @@ namespace Timesheet.App.ViewModels
             return await tokenClient.RequestAuthorizationCodeAsync(response.Code, redirectUri.ToString());
         }
 
-        private async Task FinishLoginAsync(TokenResponse response)
+        private async System.Threading.Tasks.Task<bool> FinishLoginAsync(TokenResponse response)
         {
             // Let's retrieve the claims using that access token to fetch the user name we need.
             var userInfoRequest = new UserInfoClient(new Uri(TimesheetConstants.UserInfoEndpoint), response.AccessToken);
             var userInfo = await userInfoRequest.GetAsync();
+
+            if (userInfo.IsError || userInfo.IsHttpError)
+            {
+                return false;
+            }
 
             App.EmployeeId = userInfo.Claims.FirstOrDefault(x => x.Item1 == "name")?.Item2 ?? "";
 
@@ -155,6 +132,7 @@ namespace Timesheet.App.ViewModels
             _apiService.TokenResponse = response;
 
             NavigateToDetailPage();
+            return true;
         }
 
         private void NavigateToDetailPage()

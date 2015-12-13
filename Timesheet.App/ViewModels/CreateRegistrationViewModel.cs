@@ -10,11 +10,13 @@ using GalaSoft.MvvmLight.Command;
 using System.Windows.Input;
 using Windows.UI.Popups;
 using System.Linq;
+using GalaSoft.MvvmLight.Views;
 
 namespace Timesheet.App.ViewModels
 {
     public sealed class CreateRegistrationViewModel : ViewModelBase
     {
+        private readonly INavigationService _navService;
         private readonly ApiService _apiService;
 
         private ICommand _saveCommand;
@@ -27,9 +29,10 @@ namespace Timesheet.App.ViewModels
         private TimeSpan _end;
         private string _remarks = "";
         private bool _initialized;
-
-        public CreateRegistrationViewModel(ApiService apiService)
+        
+        public CreateRegistrationViewModel(INavigationService navService, ApiService apiService)
         {
+            _navService = navService;
             _apiService = apiService;
 
             Projects = new ObservableCollection<Project>();
@@ -236,7 +239,17 @@ namespace Timesheet.App.ViewModels
             catch (AccessTokenExpiredException)
             {
                 await _apiService.RefreshAccessTokenAsync();
-                projects = await _apiService.GetListAsync<Project>("projects");
+
+                try
+                {
+                    projects = await _apiService.GetListAsync<Project>("projects");
+                }
+                catch (AccessTokenExpiredException)
+                {
+                    ApiService.RemoveTokenFromVault();
+                    _navService.GoBack();
+                    return;
+                }
             }
 
             foreach (var project in projects.OrderBy(p => p.Name))

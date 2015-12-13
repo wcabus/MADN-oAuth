@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Text;
 using System.Net.Http.Headers;
-using Windows.Security.Authentication.Web;
+using Windows.Security.Credentials;
 using IdentityModel.Client;
 using Timesheet.Domain;
 using Task = System.Threading.Tasks.Task;
@@ -76,6 +76,9 @@ namespace Timesheet.App.Services
 
             var response = await tokenClient.RequestRefreshTokenAsync(_tokenResponse.RefreshToken);
             TokenResponse = response;
+
+            // Store the new TokenResponse in the password vault, refresh token might have changed!
+            StoreTokenInVault(response);
         }
 
         private void EnsureSuccessStatusCode(HttpResponseMessage response)
@@ -101,6 +104,45 @@ namespace Timesheet.App.Services
         private T ParseJson<T>(string json)
         {
             return JsonConvert.DeserializeObject<T>(json);
+        }
+
+        public static string GetTokenFromVault()
+        {
+            var vault = new PasswordVault();
+            try
+            {
+                var pwdc = vault.Retrieve(TimesheetConstants.ClientId, TimesheetConstants.VaultUserName);
+                return pwdc.Password;
+            }
+            catch
+            {
+                // Couldn't retrieve the credential
+            }
+
+            return null;
+        }
+
+        public static void StoreTokenInVault(TokenResponse response)
+        {
+            RemoveTokenFromVault();
+
+            var vault = new PasswordVault();
+            var pwdc = new PasswordCredential(TimesheetConstants.ClientId, TimesheetConstants.VaultUserName, response.Raw);
+            vault.Add(pwdc);
+        }
+
+        public static void RemoveTokenFromVault()
+        {
+            var vault = new PasswordVault();
+            try
+            {
+                var pwdc = vault.Retrieve(TimesheetConstants.ClientId, TimesheetConstants.VaultUserName);
+                vault.Remove(pwdc);
+            }
+            catch
+            {
+                // Couldn't retrieve the credential
+            }
         }
 
         public void Dispose()
