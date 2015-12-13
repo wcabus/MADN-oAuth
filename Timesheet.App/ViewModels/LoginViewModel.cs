@@ -113,7 +113,6 @@ namespace Timesheet.App.ViewModels
             }
 
             pwdc.RetrievePassword();
-            var idToken = pwdc.UserName;
             var raw = pwdc.Password;
 
             try
@@ -146,14 +145,14 @@ namespace Timesheet.App.ViewModels
 
         private async Task FinishLoginAsync(TokenResponse response)
         {
-            // Great! Now, let's retrieve the claims using that access token to fetch the user name we need.
+            // Let's retrieve the claims using that access token to fetch the user name we need.
             var userInfoRequest = new UserInfoClient(new Uri(TimesheetConstants.UserInfoEndpoint), response.AccessToken);
             var userInfo = await userInfoRequest.GetAsync();
 
             App.EmployeeId = userInfo.Claims.FirstOrDefault(x => x.Item1 == "name")?.Item2 ?? "";
 
             // And remember the access token when calling the API
-            _apiService.Token = response.AccessToken;
+            _apiService.TokenResponse = response;
 
             NavigateToDetailPage();
         }

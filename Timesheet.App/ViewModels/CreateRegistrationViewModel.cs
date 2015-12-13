@@ -1,5 +1,6 @@
 ﻿using GalaSoft.MvvmLight;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using TTask = System.Threading.Tasks.Task;
 using Timesheet.App.Services;
@@ -226,8 +227,18 @@ namespace Timesheet.App.ViewModels
 
             // Load the projects
             Projects.Clear();
+            IEnumerable<Project> projects;
 
-            var projects = await _apiService.GetListAsync<Project>("projects");
+            try
+            {
+                projects = await _apiService.GetListAsync<Project>("projects");
+            }
+            catch (AccessTokenExpiredException)
+            {
+                await _apiService.RefreshAccessTokenAsync();
+                projects = await _apiService.GetListAsync<Project>("projects");
+            }
+
             foreach (var project in projects.OrderBy(p => p.Name))
             {
                 Projects.Add(project);
