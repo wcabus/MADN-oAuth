@@ -5,6 +5,8 @@ using FluentValidation.WebApi;
 using IdentityModel;
 using IdentityServer3.AccessTokenValidation;
 using Microsoft.Owin;
+using Microsoft.Owin.Security;
+using Microsoft.Owin.Security.OAuth;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Owin;
@@ -30,10 +32,11 @@ namespace Timesheet.Api
             });
 
             var config = new HttpConfiguration();
-
-            //config.SuppressDefaultHostAuthentication();
             config.MapHttpAttributeRoutes();
+
+            config.SuppressDefaultHostAuthentication();
             config.Filters.Add(new AuthorizeAttribute());
+            config.Filters.Add(new HostAuthenticationFilter(OAuthDefaults.AuthenticationType));
 
             config.Formatters.Remove(config.Formatters.XmlFormatter);
             config.Formatters.JsonFormatter.SerializerSettings = new JsonSerializerSettings
