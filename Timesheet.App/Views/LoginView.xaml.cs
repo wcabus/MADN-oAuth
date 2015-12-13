@@ -1,4 +1,7 @@
-﻿using Windows.UI.Xaml.Controls;
+﻿using GalaSoft.MvvmLight.Messaging;
+using Timesheet.App.Messages;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Navigation;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -12,6 +15,13 @@ namespace Timesheet.App.Views
         public LoginView()
         {
             InitializeComponent();
+        }
+
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+
+            Messenger.Default.Send(new TryLogonUsingVaultMessage());
         }
     }
 }

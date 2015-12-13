@@ -35,7 +35,10 @@ namespace Timesheet.STS.Configuration
                     RedirectUris = new List<string>
                     {
                         "ms-app://s-1-15-2-2229323805-4229103899-2707766196-3752596484-745237967-1254760863-2047913441/"
-                    }
+                    },
+
+                    AccessTokenLifetime = 60,
+
                 }
             };
         }

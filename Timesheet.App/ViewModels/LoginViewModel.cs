@@ -14,6 +14,7 @@ using Timesheet.Domain;
 using Task = System.Threading.Tasks.Task;
 using IdentityModel;
 using IdentityModel.Client;
+using Timesheet.App.Messages;
 
 namespace Timesheet.App.ViewModels
 {
@@ -35,6 +36,7 @@ namespace Timesheet.App.ViewModels
 
         private void RegisterMessaging()
         {
+            MessengerInstance.Register<TryLogonUsingVaultMessage>(this, async msg => await TryLoginUsingVaultAsync());
         }
 
         private void CreateCommands()
@@ -45,6 +47,11 @@ namespace Timesheet.App.ViewModels
         public ICommand LoginCommand => _loginCommand;
 
         private async Task LoginAsync()
+        {
+            await LoginUsingUsernameAndPasswordAsync();
+        }
+
+        private async Task LoginUsingUsernameAndPasswordAsync()
         {
             const string responseType = "code id_token";
 
@@ -64,29 +71,13 @@ namespace Timesheet.App.ViewModels
 
                 if (result.ResponseStatus == WebAuthenticationStatus.Success)
                 {
-                    // Successful authentication, but we only have the ID token and a (long lived) refresh token. 
+                    // Successful authentication, but we only have the ID token. We need to ask for the access token and refresh tokens now. 
                     var response = new AuthorizeResponse(result.ResponseData);
+                    var tokenResponse = await GetAuthTokenAsync(response);
 
-                    StoreCredentials(response);
-
-                    // Let's get the actual (short lived) access token 
-                    var tokenClient = new TokenClient(
-                                    TimesheetConstants.TokenEndpoint,
-                                    TimesheetConstants.ClientId,
-                                    "mysupersecretkey");
-
-                    var tokenResponse = await tokenClient.RequestAuthorizationCodeAsync(response.Code, redirectUri.ToString());
-
-                    // Great! Now, let's retrieve the claims using that access token to fetch the user name we need.
-                    var userInfoRequest = new UserInfoClient(new Uri(TimesheetConstants.UserInfoEndpoint), tokenResponse.AccessToken);
-                    var userInfo = await userInfoRequest.GetAsync();
-
-                    App.EmployeeId = userInfo.Claims.FirstOrDefault(x => x.Item1 == "name")?.Item2 ?? "";
-
-                    // And remember the access token when calling the API
-                    _apiService.Token = tokenResponse.AccessToken;
-
-                    NavigateToDetailPage();
+                    StoreCredentials(tokenResponse);
+                    
+                    await FinishLoginAsync(tokenResponse);
                 }
             }
             catch (Exception ex)
@@ -96,12 +87,75 @@ namespace Timesheet.App.ViewModels
             }
         }
 
-        private void StoreCredentials(AuthorizeResponse response)
+        private void StoreCredentials(TokenResponse response)
         {
             var vault = new PasswordVault();
             var pwdc = new PasswordCredential(TimesheetConstants.ClientId, response.IdentityToken, response.Raw);
 
             vault.Add(pwdc);
+        }
+
+        private async System.Threading.Tasks.Task<bool> TryLoginUsingVaultAsync()
+        {
+            var vault = new PasswordVault();
+            PasswordCredential pwdc = null;
+
+            try {
+                pwdc = vault.FindAllByResource(TimesheetConstants.ClientId).FirstOrDefault();
+            }
+            catch {
+                // Couldn't find a credential for our application
+            }
+
+            if (pwdc == null)
+            {
+                return false;
+            }
+
+            pwdc.RetrievePassword();
+            var idToken = pwdc.UserName;
+            var raw = pwdc.Password;
+
+            try
+            {
+                var tokenResponse = new TokenResponse(raw);
+                await FinishLoginAsync(tokenResponse);
+                return true;
+            }
+            catch
+            {
+                // Something went wrong when parsing the original token.
+                vault.Remove(pwdc);
+            }
+
+            return false;
+        }
+
+        private async System.Threading.Tasks.Task<TokenResponse> GetAuthTokenAsync(AuthorizeResponse response)
+        {
+            var redirectUri = WebAuthenticationBroker.GetCurrentApplicationCallbackUri();
+
+            // Let's get the actual (short lived) access token 
+            var tokenClient = new TokenClient(
+                            TimesheetConstants.TokenEndpoint,
+                            TimesheetConstants.ClientId,
+                            "mysupersecretkey");
+
+            return await tokenClient.RequestAuthorizationCodeAsync(response.Code, redirectUri.ToString());
+        }
+
+        private async Task FinishLoginAsync(TokenResponse response)
+        {
+            // Great! Now, let's retrieve the claims using that access token to fetch the user name we need.
+            var userInfoRequest = new UserInfoClient(new Uri(TimesheetConstants.UserInfoEndpoint), response.AccessToken);
+            var userInfo = await userInfoRequest.GetAsync();
+
+            App.EmployeeId = userInfo.Claims.FirstOrDefault(x => x.Item1 == "name")?.Item2 ?? "";
+
+            // And remember the access token when calling the API
+            _apiService.Token = response.AccessToken;
+
+            NavigateToDetailPage();
         }
 
         private void NavigateToDetailPage()
