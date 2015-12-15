@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Web.Http;
 using FluentValidation.WebApi;
 using IdentityModel;
@@ -11,6 +12,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Owin;
 using Timesheet.Domain;
+using ClaimTypes = System.IdentityModel.Claims.ClaimTypes;
 
 [assembly: OwinStartup(typeof(Timesheet.Api.Startup))]
 

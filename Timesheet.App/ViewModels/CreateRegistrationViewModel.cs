@@ -1,5 +1,6 @@
 ﻿using GalaSoft.MvvmLight;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using TTask = System.Threading.Tasks.Task;
@@ -179,7 +180,24 @@ namespace Timesheet.App.ViewModels
         {
             Tasks.Clear();
 
-            var tasks = await _apiService.GetListAsync<Task>($"projects/{project.Id}/tasks");
+            IEnumerable<Task> tasks = null;
+            try
+            {
+                tasks = await _apiService.GetListAsync<Task>($"projects/{project.Id}/tasks");
+            }
+            catch (AccessTokenExpiredException)
+            {
+                try
+                {
+                    await _apiService.RefreshAccessTokenAsync();
+                    tasks = await _apiService.GetListAsync<Task>($"projects/{project.Id}/tasks");
+                }
+                catch
+                {
+                    _navService.GoBack();
+                }
+            }
+
             foreach (var task in tasks.OrderBy(t => t.Name))
             {
                 Tasks.Add(task);

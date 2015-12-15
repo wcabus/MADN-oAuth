@@ -33,7 +33,8 @@ namespace Timesheet.App.Services
 
                 if (_tokenResponse != null)
                 {
-                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+                    _httpClient.DefaultRequestHeaders.Authorization = 
+                        new AuthenticationHeaderValue("Bearer",
                         _tokenResponse.AccessToken);
                 }
                 else

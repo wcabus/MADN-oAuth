@@ -50,7 +50,7 @@ namespace Timesheet.App.ViewModels
 
         private async Task LoginUsingUsernameAndPasswordAsync()
         {
-            const string responseType = "code id_token";
+            const string responseType = "code id_token"; //implicit: "id_token token"
 
             var scopes = $"openid email profile offline_access {TimesheetConstants.ApiScope}";
             var nonce = GenerateNonce();

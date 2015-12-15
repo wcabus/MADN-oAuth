@@ -38,7 +38,7 @@ namespace Timesheet.STS.Configuration
                     },
 
                     AccessTokenLifetime = 60,
-
+                    
                 }
             };
         }
