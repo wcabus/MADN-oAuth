@@ -6,7 +6,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:Timesheet.App.ViewModels"
     xmlns:cv="using:Timesheet.App.Converters"
-    RequestedTheme="Light"
+    RequestedTheme="Dark"
     mc:Ignorable="d">
 
     <Application.Resources>

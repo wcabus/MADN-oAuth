@@ -17,7 +17,7 @@ namespace Timesheet.Entities
             set { RowKey = value.ToString("D"); }
         }        
 
-        public Guid EmployeeId { get; set; }
+        public string EmployeeId { get; set; }
 
         public DateTimeOffset TimeStart { get; set; }
         public DateTimeOffset TimeEnd { get; set; }

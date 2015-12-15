@@ -1,5 +1,7 @@
 ﻿using GalaSoft.MvvmLight;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using TTask = System.Threading.Tasks.Task;
 using Timesheet.App.Services;
@@ -9,26 +11,29 @@ using GalaSoft.MvvmLight.Command;
 using System.Windows.Input;
 using Windows.UI.Popups;
 using System.Linq;
+using GalaSoft.MvvmLight.Views;
 
 namespace Timesheet.App.ViewModels
 {
     public sealed class CreateRegistrationViewModel : ViewModelBase
     {
+        private readonly INavigationService _navService;
         private readonly ApiService _apiService;
 
         private ICommand _saveCommand;
         private ICommand _deleteCommand;
 
-        private Project _selectedProject = null;
-        private Task _selectedTask = null;
+        private Project _selectedProject;
+        private Task _selectedTask;
         private DateTimeOffset _date = DateTimeOffset.Now;
         private TimeSpan _start;
         private TimeSpan _end;
         private string _remarks = "";
         private bool _initialized;
-
-        public CreateRegistrationViewModel(ApiService apiService)
+        
+        public CreateRegistrationViewModel(INavigationService navService, ApiService apiService)
         {
+            _navService = navService;
             _apiService = apiService;
 
             Projects = new ObservableCollection<Project>();
@@ -168,14 +173,31 @@ namespace Timesheet.App.ViewModels
         private void CreateCommands()
         {
             _saveCommand = new RelayCommand(async() => await SaveAsync());
-            _deleteCommand = new RelayCommand(() => Reset());
+            _deleteCommand = new RelayCommand(Reset);
         }
 
         private async TTask LoadTasksAsync(Project project)
         {
             Tasks.Clear();
 
-            var tasks = await _apiService.GetListAsync<Task>($"projects/{project.Id}/tasks");
+            IEnumerable<Task> tasks = null;
+            try
+            {
+                tasks = await _apiService.GetListAsync<Task>($"projects/{project.Id}/tasks");
+            }
+            catch (AccessTokenExpiredException)
+            {
+                try
+                {
+                    await _apiService.RefreshAccessTokenAsync();
+                    tasks = await _apiService.GetListAsync<Task>($"projects/{project.Id}/tasks");
+                }
+                catch
+                {
+                    _navService.GoBack();
+                }
+            }
+
             foreach (var task in tasks.OrderBy(t => t.Name))
             {
                 Tasks.Add(task);
@@ -194,7 +216,7 @@ namespace Timesheet.App.ViewModels
             
             try
             {
-                await _apiService.CreateRegistrationAsync(Guid.Empty /* employeeId */, registration);
+                await _apiService.CreateRegistrationAsync(App.EmployeeId, registration);
                 Reset();
 
                 var dlg = new MessageDialog("Saved!", "Create Registration");
@@ -226,8 +248,28 @@ namespace Timesheet.App.ViewModels
 
             // Load the projects
             Projects.Clear();
+            IEnumerable<Project> projects;
 
-            var projects = await _apiService.GetListAsync<Project>("projects");
+            try
+            {
+                projects = await _apiService.GetListAsync<Project>("projects");
+            }
+            catch (AccessTokenExpiredException)
+            {
+                await _apiService.RefreshAccessTokenAsync();
+
+                try
+                {
+                    projects = await _apiService.GetListAsync<Project>("projects");
+                }
+                catch (AccessTokenExpiredException)
+                {
+                    ApiService.RemoveTokenFromVault();
+                    _navService.GoBack();
+                    return;
+                }
+            }
+
             foreach (var project in projects.OrderBy(p => p.Name))
             {
                 Projects.Add(project);

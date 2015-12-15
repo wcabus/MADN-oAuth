@@ -1,5 +1,6 @@
 ﻿{
   "dependencies": {
+    "IdentityModel": "1.2.1",
     "Microsoft.Net.Http": "2.2.29",
     "Microsoft.NETCore.UniversalWindowsPlatform": "5.0.0",
     "MvvmLight": "5.2.0",

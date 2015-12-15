@@ -6,6 +6,7 @@ namespace Timesheet.Api.Models.Employees
     [Validator(typeof(CreateEmployeeModelValidator))]
     public class CreateEmployeeModel
     {
+        public string AtomiumAccount { get; set; }
         public string Name { get; set; }
         public string FirstName { get; set; }
         public string Email { get; set; }
@@ -15,6 +16,7 @@ namespace Timesheet.Api.Models.Employees
     {
         public CreateEmployeeModelValidator()
         {
+            RuleFor(x => x.AtomiumAccount).NotEmpty().Length(7);
             RuleFor(x => x.Name).NotEmpty().Length(2, 300);
             RuleFor(x => x.FirstName).NotEmpty().Length(2, 300);
             RuleFor(x => x.Email).NotEmpty().EmailAddress();

@@ -53,7 +53,7 @@ namespace Timesheet.Entities
         {
             return new EmployeeEntity
             {
-                Id = model.Id,
+                AtomiumAccount = model.AtomiumAccount,
                 Name = model.Name,
                 FirstName = model.FirstName,
                 Email = model.Email
@@ -64,7 +64,7 @@ namespace Timesheet.Entities
         {
             return new Employee
             {
-                Id = entity.Id,
+                AtomiumAccount = entity.AtomiumAccount,
                 Name = entity.Name,
                 FirstName = entity.FirstName,
                 Email = entity.Email

@@ -10,10 +10,10 @@ namespace Timesheet.Entities
             PartitionKey = "";
         }
 
-        public Guid Id
+        public string AtomiumAccount
         {
-            get { return Guid.ParseExact(RowKey, "D"); }
-            set { RowKey = value.ToString("D"); }
+            get { return RowKey; }
+            set { RowKey = value; }
         }
 
         public string Name { get; set; }
