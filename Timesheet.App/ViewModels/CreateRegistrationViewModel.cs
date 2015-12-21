@@ -1,6 +1,5 @@
 ﻿using GalaSoft.MvvmLight;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using TTask = System.Threading.Tasks.Task;
@@ -187,6 +186,7 @@ namespace Timesheet.App.ViewModels
             }
             catch (AccessTokenExpiredException)
             {
+                // Ugly way of retrying after refreshing a token.
                 try
                 {
                     await _apiService.RefreshAccessTokenAsync();
@@ -194,7 +194,9 @@ namespace Timesheet.App.ViewModels
                 }
                 catch
                 {
+                    ApiService.RemoveTokenFromVault();
                     _navService.GoBack();
+                    return;
                 }
             }
 
@@ -256,10 +258,10 @@ namespace Timesheet.App.ViewModels
             }
             catch (AccessTokenExpiredException)
             {
-                await _apiService.RefreshAccessTokenAsync();
-
+                // Ugly way of retrying after refreshing a token.
                 try
                 {
+                    await _apiService.RefreshAccessTokenAsync();
                     projects = await _apiService.GetListAsync<Project>("projects");
                 }
                 catch (AccessTokenExpiredException)
