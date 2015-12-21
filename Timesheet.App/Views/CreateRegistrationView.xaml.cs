@@ -15,7 +15,7 @@ namespace Timesheet.App.Views
     {
         public CreateRegistrationView()
         {
-            this.InitializeComponent();
+            InitializeComponent();
         }
 
         public CreateRegistrationViewModel Vm => (CreateRegistrationViewModel)DataContext;

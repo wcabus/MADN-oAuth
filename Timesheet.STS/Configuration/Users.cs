@@ -11,11 +11,12 @@ namespace Timesheet.STS.Configuration
         {
             return new List<InMemoryUser>
             {
+                // Declare a user
                 new InMemoryUser
                 {
                     Username = "wcuah73",
                     Password = "secret",
-                    Subject = "1",
+                    Subject = "1", // Subject = unique identifier
 
                     Claims = new[]
                     {

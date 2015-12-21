@@ -50,10 +50,11 @@ namespace Timesheet.App.ViewModels
 
         private async Task LoginUsingUsernameAndPasswordAsync()
         {
-            const string responseType = "code id_token"; //implicit: "id_token token"
+            const string responseType = "code id_token"; //implicit flow: "id_token token"
 
+            // Space-separated list of scopes we want to receive
             var scopes = $"openid email profile offline_access {TimesheetConstants.ApiScope}";
-            var nonce = GenerateNonce();
+            var nonce = GenerateNonce(); // Unique token for the authorization request.
 
             try
             {
@@ -68,12 +69,16 @@ namespace Timesheet.App.ViewModels
 
                 if (result.ResponseStatus == WebAuthenticationStatus.Success)
                 {
-                    // Successful authentication, but we only have the ID token. We need to ask for the access token and refresh tokens now. 
+                    // Successful authentication, but we only have the ID token. 
                     var response = new AuthorizeResponse(result.ResponseData);
+
+                    // We need to ask for the access token and refresh tokens now.
                     var tokenResponse = await GetAuthTokenAsync(response);
 
+                    // Store the tokens in the password vault
                     ApiService.StoreTokenInVault(tokenResponse);
                     
+                    // And finish the login process
                     await FinishLoginAsync(tokenResponse);
                 }
             }
@@ -84,11 +89,16 @@ namespace Timesheet.App.ViewModels
             }
         }
 
+        /// <summary>
+        /// Try logging in using the tokens stored in the password vault.
+        /// </summary>
+        /// <returns></returns>
         private async System.Threading.Tasks.Task<bool> TryLoginUsingVaultAsync()
         {
             var raw = ApiService.GetTokenFromVault();
             if (string.IsNullOrEmpty(raw))
             {
+                ApiService.RemoveTokenFromVault();
                 return false;
             }
 
@@ -98,6 +108,7 @@ namespace Timesheet.App.ViewModels
                 return true;
             }
 
+            // If logging on fails, remove the token from the vault.
             ApiService.RemoveTokenFromVault();
             return false;
         }
@@ -106,7 +117,7 @@ namespace Timesheet.App.ViewModels
         {
             var redirectUri = WebAuthenticationBroker.GetCurrentApplicationCallbackUri();
 
-            // Let's get the actual (short lived) access token 
+            // Let's get the actual (short lived) access token using the authorization code.
             var tokenClient = new TokenClient(
                             TimesheetConstants.TokenEndpoint,
                             TimesheetConstants.ClientId,
@@ -118,6 +129,7 @@ namespace Timesheet.App.ViewModels
         private async System.Threading.Tasks.Task<bool> FinishLoginAsync(TokenResponse response)
         {
             // Let's retrieve the claims using that access token to fetch the user name we need.
+            // Note: the user name is already in our response's access token, but this code demonstrates retrieving all claims.
             var userInfoRequest = new UserInfoClient(new Uri(TimesheetConstants.UserInfoEndpoint), response.AccessToken);
             var userInfo = await userInfoRequest.GetAsync();
 
@@ -126,9 +138,10 @@ namespace Timesheet.App.ViewModels
                 return false;
             }
 
+            // Set the EmployeeId needed to create time registrations.
             App.EmployeeId = userInfo.Claims.FirstOrDefault(x => x.Item1 == "name")?.Item2 ?? "";
 
-            // And remember the access token when calling the API
+            // Remember the access token when calling the API
             _apiService.TokenResponse = response;
 
             NavigateToDetailPage();

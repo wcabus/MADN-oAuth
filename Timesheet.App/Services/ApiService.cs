@@ -18,6 +18,9 @@ namespace Timesheet.App.Services
         private readonly HttpClient _httpClient = new HttpClient();
         private TokenResponse _tokenResponse;
 
+        // TODO Check if this IP address matches on your machine using "ipconfig".
+        // You'll need the IPv4 address of the Ethernet adapter vEthernet (Internal Ethernet Port Windows Phone Emulator Internal Switch)
+        // Also, verify if the API lives at the same location in IIS.
         const string BaseUri = "http://169.254.80.80/Timesheet.Api/api/";
 
         public ApiService()
@@ -33,12 +36,14 @@ namespace Timesheet.App.Services
 
                 if (_tokenResponse != null)
                 {
+                    // Set the authentication header with the bearer token
                     _httpClient.DefaultRequestHeaders.Authorization = 
                         new AuthenticationHeaderValue("Bearer",
                         _tokenResponse.AccessToken);
                 }
                 else
                 {
+                    // Clear the authentication header
                     _httpClient.DefaultRequestHeaders.Authorization = null;
                 }
             }
@@ -78,7 +83,7 @@ namespace Timesheet.App.Services
             var response = await tokenClient.RequestRefreshTokenAsync(_tokenResponse.RefreshToken);
             TokenResponse = response;
 
-            // Store the new TokenResponse in the password vault, refresh token might have changed!
+            // Store the new TokenResponse in the password vault, refresh token might have changed (depends on the options in the STS).
             StoreTokenInVault(response);
         }
 
@@ -89,7 +94,7 @@ namespace Timesheet.App.Services
                 throw new AccessTokenExpiredException();
             }
 
-            response.EnsureSuccessStatusCode();
+            response.EnsureSuccessStatusCode(); // throws an exception if the status code is 4xx or 5xx
         }
 
         private string BuildUri(string path)
@@ -112,12 +117,13 @@ namespace Timesheet.App.Services
             var vault = new PasswordVault();
             try
             {
+                // Why not return null or introduce a TryRetrieve instead...
                 var pwdc = vault.Retrieve(TimesheetConstants.ClientId, TimesheetConstants.VaultUserName);
                 return pwdc.Password;
             }
             catch
             {
-                // Couldn't retrieve the credential
+                // Couldn't retrieve the credential.
             }
 
             return null;
@@ -137,6 +143,7 @@ namespace Timesheet.App.Services
             var vault = new PasswordVault();
             try
             {
+                // Why not return null or introduce a TryRetrieve instead...
                 var pwdc = vault.Retrieve(TimesheetConstants.ClientId, TimesheetConstants.VaultUserName);
                 vault.Remove(pwdc);
             }
